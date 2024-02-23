@@ -62,6 +62,9 @@
 
     <div class="container mt-5">
         <h1>Criar Nova Aula</h1>
+        {% if last_error %}
+        <p class="text-danger">{{ last_error }}</p>
+        {% endif %}
         {% if messages %}
         {% for message in messages %}
         <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% endif %} alert-dismissible" role="alert">
@@ -74,7 +77,7 @@
             {% csrf_token %}
             <div class="mb-3">
                 <label for="nome_aula" class="form-label">Nome da Aula:</label>
-                <input type="text" id="nome_aula" name="nome_aula" class="form-control" placeholder="Nome da Aula...">
+                <input type="text" id="nome_aula" name="nome_aula" class="form-control" placeholder="Nome da Aula..." required>
             </div>
 
             <div class="mb-3">

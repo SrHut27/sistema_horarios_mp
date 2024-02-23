@@ -149,7 +149,25 @@ class Aula(models.Model):
                 turma__alunos=aluno
             ).exclude(pk=self.pk).exists():
                 raise ValidationError(_('O aluno {} está em outra aula neste horário na turma {}.').format(aluno.nome, self.turma))
-        
+
+        # Verificar se a aula está dentro da carga horária do professor
+        carga_horaria_professor = CargaHorariaProfessor.objects.filter(
+            professor=self.professor,
+            dia_semana=self.dia_semana
+        ).first()
+        if carga_horaria_professor:
+            if not carga_horaria_professor.horas.filter(pk=self.hora.pk).exists():
+                raise ValidationError(_('Esta aula está fora da carga horária do professor.'))
+
+        # Verificar se a aula está dentro da carga horária da turma
+        carga_horaria_turma = CargaHorariaTurma.objects.filter(
+            turma=self.turma,
+            dia_semana=self.dia_semana
+        ).first()
+        if carga_horaria_turma:
+            if not carga_horaria_turma.horas.filter(pk=self.hora.pk).exists():
+                raise ValidationError(_('Esta aula está fora da carga horária da turma.'))
+
 
     def __str__(self):
         return f'{self.nome} - {self.dia_semana} ({self.hora})'

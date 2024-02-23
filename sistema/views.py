@@ -26,6 +26,7 @@ def ultimas_aulas_view(request):
 
 @staff_member_required(login_url = 'login_view')
 def create_systems(request):
+    last_error = None
     if request.method == 'POST':
         nome_aula = request.POST.get('nome_aula')
         turma_id = request.POST.get('turma')
@@ -55,9 +56,12 @@ def create_systems(request):
                         # Se a validação for bem-sucedida, adicionar a combinação à lista de combinações válidas
                         combinacoes_validas.append((dia, hora))
                     except ValidationError as e:
-   
+                        last_error = e.message_dict[next(iter(e.message_dict))][0]
+                    
                         continue
 
+            else:
+                last_error = None     
 
         if combinacoes_validas:
             # Escolher aleatoriamente uma combinação válida
@@ -68,6 +72,7 @@ def create_systems(request):
         else:
             # Se nenhuma combinação válida for encontrada, exibir mensagem de erro
             messages.error(request, 'Não há combinação de dia e hora disponível.')
+            
 
         return redirect('create_systems')
 
@@ -75,7 +80,7 @@ def create_systems(request):
         # Se o método não for POST, renderizar o formulário
         turmas = Turma.objects.all()
         professores = Professor.objects.all()
-        return render(request, 'cad_sistemas.html', {'turmas': turmas, 'professores': professores})
+        return render(request, 'cad_sistemas.html', {'turmas': turmas, 'professores': professores, 'last_error': last_error})
     
 @login_required(login_url='login_view')
 def create_varios_sistemas(request):

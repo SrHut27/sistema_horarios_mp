@@ -12,6 +12,7 @@ class CustomModelForm(forms.ModelForm):
 class CargaHorariaProfessorAdmin(admin.ModelAdmin):
     list_display = ('professor', 'dia_semana', 'listar_horas')
     filter_horizontal = ('horas',)
+    list_filter = ('professor', 'dia_semana')
     form = CustomModelForm
 
     def listar_horas(self, obj):
@@ -28,6 +29,7 @@ class CargaHorariaProfessorAdmin(admin.ModelAdmin):
 class CargaHorariaTurmaAdmin(admin.ModelAdmin):
     list_display = ('turma', 'dia_semana', 'listar_horas')
     filter_horizontal = ('horas',)
+    list_filter = ('turma', 'dia_semana')
     form = CustomModelForm
 
     def listar_horas(self, obj):
@@ -45,7 +47,6 @@ class AulaAdmin(admin.ModelAdmin):
     list_display = ('nome', 'dia_semana', 'hora', 'professor', 'turma')
     list_filter = ('dia_semana', 'hora', 'professor', 'turma')
     
-
 class AlunoAdmin(admin.ModelAdmin):
     list_display = ('nome', 'email', 'listar_turmas')
 
