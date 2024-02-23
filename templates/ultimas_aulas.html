@@ -1,0 +1,28 @@
+{% extends 'base_admin.html' %}
+
+{% block content %}
+<main class="container flex-grow-1">
+    <div class="col-10 mx-auto my-4">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="mb-4">Últimas Aulas Criadas</h1>
+                <ul class="list-group">
+                    {% for aula in ultimas_aulas %}
+                    <li class="list-group-item">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Nome:</strong> {{ aula.nome }} <br>
+                                <strong>Professor:</strong> {{ aula.professor.nome }} <br>
+                                <strong>Turma:</strong> {{ aula.turma.nome }} <br>
+                                <strong>Dia:</strong> {{ aula.dia_semana.nome }} <br>
+                                <strong>Hora:</strong> {{ aula.hora }} <br>
+                            </div>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

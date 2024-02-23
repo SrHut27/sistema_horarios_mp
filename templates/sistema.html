@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<body class="d-flex flex-column min-vh-100">
+    <main class="container flex-grow-1">
+        <div class="col-10 mx-auto">
+            <div class="row">
+                {% for turma, status_info in turma_schedule_status.items %}
+                <div class="col-md-4 mb-3">
+                    <div class="card bg-light" style="width: 18rem;">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ status_info.nome }}</h5> <!-- Exibir o nome da turma -->
+                            <p class="card-text"><strong>Tutor:</strong> {{ status_info.tutor }}</p> <!-- Exibir o tutor da turma -->
+                            {% for dia, status in status_info.status.items %}
+                                {% if status == 'Completo' %}
+                                <p class="card-text text-success">{{ dia }}: {{ status }}</p>
+                                {% else %}
+                                <p class="card-text text-danger">{{ dia }}: {{ status }}</p>
+                                {% endif %}
+                            {% endfor %}
+                            <a href="{% url 'horarios_view' %}?termo_pesquisa={{ status_info.nome }}" class="btn btn-primary">Visualizar</a>
+                            <a href="{% url 'admin:index' %}" class="btn btn-secondary" target="_blank">Editar</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </main>
+{% endblock %}

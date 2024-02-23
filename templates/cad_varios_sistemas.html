@@ -1,0 +1,55 @@
+{% extends 'base_admin.html' %}
+
+{% block content %}
+
+    <div class="container mt-5">
+        <h1>Criar Aulas Semanais</h1>
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% endif %} alert-dismissible" role="alert">
+                    <div>{{ message }}</div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="nome_aula" class="form-label">Nome da Aula:</label>
+                <input type="text" id="nome_aula" name="nome_aula" class="form-control">
+            </div>
+
+            <div class="mb-3">
+                <label for="turma" class="form-label">Turma:</label>
+                <select id="turma" name="turma" class="form-select">
+                    {% for turma in turmas %}
+                        <option value="{{ turma.id }}">{{ turma.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="professor" class="form-label">Professor:</label>
+                <select id="professor" name="professor" class="form-select">
+                    {% for professor in professores %}
+                        <option value="{{ professor.id }}">{{ professor.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="hora" class="form-label">Horário:</label>
+                <select id="hora" name="hora" class="form-select">
+                    {% for hora in horas %}
+                        <option value="{{ hora.id }}">{{ hora }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+
+            <button type="submit" class="btn btn-primary">Criar Aulas Semanais</button>
+            <a href="{% url 'create_systems' %}" class="btn btn-secondary">Criar Aula</a>
+            <a href="{% url 'admin:index' %}" class="btn btn-secondary" target="_blank">Admin</a>
+        </form>
+    </div>
+{% endblock %}

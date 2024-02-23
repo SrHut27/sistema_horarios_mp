@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% load custom_filters %}
+
+<!-- Conteúdo -->
+<main class="container flex-grow-1">
+    <div class="col-10 mx-auto my-4">
+        <h5 class="text-muted">Digite o nome do aluno, professor ou turma que deseja consultar horário</h5>
+        <form method="GET" action="{% url 'horarios_view' %}">
+            <div class="input-group">
+                <input type="text" name="termo_pesquisa" class="form-control" placeholder="Digite o nome do aluno, professor ou turma">
+                <button type="submit" class="btn btn-primary">Pesquisar</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-10 mx-auto">
+        {% if aluno_pesquisado %}
+        <h3>Horário do/a aluno/a {{ aluno_pesquisado.nome }}</h3>
+            {% if aluno_turmas %}
+            <h5 class="mt-3">Turmas que o aluno pertence:</h5><h6><strong>
+                {% for turma in aluno_turmas %}
+                    {{ turma }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </strong></h6>
+            {% endif %}
+        {% elif professor_pesquisado %}
+            <h3>Horário do/a professor/a {{ professor_pesquisado.nome }}</h3>
+        {% elif turma_pesquisada %}
+            <h3>Horário da Turma {{ turma_pesquisada.nome }}</h3>
+            {% endif %}
+
+        {% if not aluno_pesquisado and not professor_pesquisado and not turma_pesquisada %}
+            <div class="alert alert-info" role="alert">
+                Para consultar o horário, digite o nome de um aluno, professor ou turma que faça parte da Escola Maria Peregrina.
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="col-10 mx-auto">
+        {% if aluno_pesquisado or professor_pesquisado or turma_pesquisada %}
+            <table class="table table-bordered w-100">
+                <thead>
+                    <tr>
+                        <th scope="col"> </th>
+                        {% for semana in semanas %}
+                            <th scope="col" class="text-center">{{ semana.nome }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for hora in horas %}
+                        <tr>
+                            <th class="text-center" scope="row">{{ hora }}</th>
+                            {% for semana in semanas %}
+                                {% with aula=aulas_por_hora_semana|get_item:hora|get_item:semana %}
+                                    {% if aula %}
+                                        <td class="text-center {% if aula.nome in 'Santa Missa|Intervalo|Saída|Almoço' %}bg-dark text-light 
+                                        {% elif  aula.nome in 'Física|Inglês|MTB|Geografia|Literatura' %}bg-primary text-light 
+                                        {% elif  aula.nome in 'Matemática|História|Educação Física|Filosofia|' %}bg-danger text-light 
+                                        {% elif  aula.nome in 'Português|Biologia|Artes|Sociologia|Química' %}bg-success text-light 
+                                        {% elif  aula.nome in 'Judô|Balé|Artes|Música|Futebol|Cantinho' %}bg-warning text-dark 
+                                        {% elif  aula.nome in 'Jazz|Filme|Programação' %}bg-secondary text-light {% endif %}" 
+                                        data-toggle="tooltip" title="Aula: {{ aula.nome }} | Professor: {{ aula.professor }} | Turma: {{ aula.turma }}">{{ aula.nome }}</td>
+                                    {% else %}
+                                        <td class="bg-light text-center"></td>
+                                    {% endif %}
+                                {% endwith %}
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </div>
+    
+
+    <script>
+        $(document).ready(function() {
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+    </script>
+</main>
+
+{% endblock %}
