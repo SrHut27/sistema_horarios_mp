@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.models import User
 from django.utils import timezone
 
 
@@ -102,7 +103,21 @@ class Aula(models.Model):
     hora = models.ForeignKey(Hora, on_delete=models.CASCADE)
     professor = models.ForeignKey(Professor, on_delete=models.CASCADE)
     turma = models.ForeignKey(Turma, on_delete=models.CASCADE)
-    
+    criado_por = models.ForeignKey(User, on_delete=models.CASCADE, editable=False, null=True)
+    data_criacao = models.DateTimeField(default=timezone.now, editable=False, null=True)
+
+    def save(self, *args, **kwargs):
+        if not self.id:  # Se for uma nova instância
+            user = None
+            # Verifica se existe um usuário autenticado
+            if hasattr(self, 'request') and hasattr(self.request, 'user'):
+                user = self.request.user
+            elif hasattr(self, 'user'):
+                user = self.user
+            # Define o usuário atual como criador
+            if user and user.is_authenticated:
+                self.criado_por = user
+        super().save(*args, **kwargs)
 
     def clean(self):
         # Verificar se há carga horária definida para o dia da semana do professor

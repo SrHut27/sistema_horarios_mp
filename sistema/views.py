@@ -69,8 +69,11 @@ def create_systems(request):
             # Escolher aleatoriamente uma combinação válida
             dia_escolhido, hora_escolhida = random.choice(combinacoes_validas)
             # Criar a aula com a combinação escolhida
-            Aula.objects.create(nome=nome_aula, dia_semana=dia_escolhido, hora=hora_escolhida, professor=professor,
-                                turma=turma)
+            nova_aula = Aula(nome=nome_aula, dia_semana=dia_escolhido, hora=hora_escolhida, professor=professor, turma=turma)
+            # Atribuir o usuário atualmente autenticado como criador da aula
+            nova_aula.criado_por = request.user
+            # Salvar a aula
+            nova_aula.save()
             messages.success(request, 'Aula criada com sucesso!')
             # Se a aula for criada com sucesso, definir last_validation_error como None
             last_validation_error = None
@@ -97,7 +100,7 @@ def create_systems(request):
                       {'turmas': turmas, 'professores': professores})
     
 
-@staff_member_required(login_url = 'login_view')
+@staff_member_required(login_url='login_view')
 def create_varios_sistemas(request):
     if request.method == 'POST':
         nome_aula = request.POST.get('nome_aula')
@@ -109,9 +112,6 @@ def create_varios_sistemas(request):
         professor = Professor.objects.get(id=professor_id)
         hora = Hora.objects.get(id=hora_id)
 
-        # Obter todas as horas e ordená-las cronologicamente
-        horas = Hora.objects.all().order_by('horario')
-
         # Obter todos os dias da semana
         dias_semana = DiaDaSemana.objects.all()
 
@@ -119,13 +119,15 @@ def create_varios_sistemas(request):
             try:
                 # Tentar criar uma nova instância de Aula temporária para validar
                 nova_aula = Aula(nome=nome_aula, dia_semana=dia, hora=hora, professor=professor, turma=turma)
+                # Atribuir o usuário atualmente autenticado como criador da aula
+                nova_aula.criado_por = request.user
                 nova_aula.full_clean()  # Aplica todas as validações do modelo
                 # Se a validação for bem-sucedida, criar a aula
                 nova_aula.save()
                 messages.success(request, f'Aula para {dia} criada com sucesso!')
             except ValidationError as e:
                 error_messages = [str(error) for error in e]  # Convert each element to a string
-                messages.error(request, f'Erro ao criar aula para {dia}: já existe aulas para está combinação ')
+                messages.error(request, f'Erro ao criar aula para {dia}: já existe aulas para esta combinação')
 
         return redirect('create_varios_sistemas')
 
@@ -135,7 +137,6 @@ def create_varios_sistemas(request):
         professores = Professor.objects.all()
         horas = Hora.objects.all().order_by('horario')  # Ordenar as horas cronologicamente
         return render(request, 'cad_varios_sistemas.html', {'turmas': turmas, 'professores': professores, 'horas': horas})
-
 
 
 ##############################################################################################################################

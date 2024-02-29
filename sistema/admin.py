@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib import admin
 from .models import DiaDaSemana, Hora, Professor, Turma, Aluno, Aula, CargaHorariaProfessor, CargaHorariaTurma
+from django.contrib.auth.models import User
 
 class CustomModelForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -44,8 +45,18 @@ class CargaHorariaTurmaAdmin(admin.ModelAdmin):
 
 @admin.register(Aula)
 class AulaAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'dia_semana', 'hora', 'professor', 'turma')
+    list_display = ('nome', 'dia_semana', 'hora', 'professor', 'turma', 'criado_por', 'data_criacao')
     list_filter = ('dia_semana', 'hora', 'professor', 'turma')
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        queryset = queryset.order_by('-data_criacao')  # Ordena por data de criação descendente
+        return queryset
+    
+    def save_model(self, request, obj, form, change):
+        # Atribuir o usuário logado como criador da aula
+        obj.criado_por = request.user
+        super().save_model(request, obj, form, change)
     
 class AlunoAdmin(admin.ModelAdmin):
     list_display = ('nome', 'email', 'listar_turmas')

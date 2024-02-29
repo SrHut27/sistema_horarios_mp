@@ -16,6 +16,8 @@
                                 <strong>Turma:</strong> {{ aula.turma.nome }} <br>
                                 <strong>Dia:</strong> {{ aula.dia_semana.nome }} <br>
                                 <strong>Hora:</strong> {{ aula.hora }} <br>
+                                <strong>Criado Por:</strong> {{ aula.criado_por.username }} <br> {# Exibe o nome de usuário do criador #}
+                                <strong>Criado Em:</strong> {{ aula.data_criacao|date:"d/m/Y H:i:s" }} <br> {# Exibe a data de criação formatada #}
                             </div>
                         </div>
                     </li>
