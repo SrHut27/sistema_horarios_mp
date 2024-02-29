@@ -107,7 +107,7 @@
         
                 <div class="mb-3">
                     <label for="turma" class="form-label">Turma:</label>
-                    <select id="turma" name="turma" class="form-select">
+                    <select id="turma" name="turma" class="form-select" required>
                         {% for turma in turmas %}
                         <option value="{{ turma.id }}">{{ turma.nome }}</option>
                         {% endfor %}
@@ -116,7 +116,7 @@
         
                 <div class="mb-3">
                     <label for="professor" class="form-label">Professor:</label>
-                    <select id="professor" name="professor" class="form-select">
+                    <select id="professor" name="professor" class="form-select" required>
                         {% for professor in professores %}
                         <option value="{{ professor.id }}">{{ professor.nome }}</option>
                         {% endfor %}
