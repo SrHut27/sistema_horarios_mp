@@ -59,48 +59,74 @@
         }
     </style>
 </head>
-
-    <div class="container mt-5">
-        <h1>Criar Nova Aula</h1>
-        {% if last_error %}
-        <p class="text-danger">{{ last_error }}</p>
-        {% endif %}
-        {% if messages %}
-        {% for message in messages %}
-        <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% endif %} alert-dismissible" role="alert">
-            <div>{{ message }}</div>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <div class="container mt-5">
+            <h1>Criar Nova Aula</h1>
+            {% if last_validation_error %}
+            <div class="alert alert-danger">
+                <p class="text-danger">
+                    <strong>Nome da Aula:</strong> {{ last_validation_error.nome_aula }}<br>
+                    <strong>Dia da Semana:</strong> {{ last_validation_error.dia_semana }}<br>
+                    <strong>Hora:</strong> {{ last_validation_error.hora }}<br>
+                    <strong>Professor:</strong> {{ last_validation_error.professor }}<br>
+                    <strong>Turma:</strong> {{ last_validation_error.turma }}<br>
+                    <strong>Erros de Validação:</strong>
+                    <ul style="list-style: none;">
+                        {% for field, errors in last_validation_error.errors.items %}
+                        {% for error in errors %}
+                        <li>{{ field }}: {{ error }}</li>
+                        {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </p>
+            </div>
+            {% endif %}
+            {% if last_error_loop %}
+            <p class="text-danger">{{ last_error_loop }}</p>
+            {% endif %}
+            {% if last_clean_error and not combinacoes_validas %}
+            <div class="alert alert-danger">
+            {{ last_clean_error }}
+            </div>
+            {% endif %}
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% endif %} alert-dismissible"
+                role="alert">
+                <div>{{ message }}</div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+            {% endif %}
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="nome_aula" class="form-label">Nome da Aula:</label>
+                    <input type="text" id="nome_aula" name="nome_aula" class="form-control" placeholder="Nome da Aula..."
+                        required>
+                </div>
+        
+                <div class="mb-3">
+                    <label for="turma" class="form-label">Turma:</label>
+                    <select id="turma" name="turma" class="form-select">
+                        {% for turma in turmas %}
+                        <option value="{{ turma.id }}">{{ turma.nome }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+        
+                <div class="mb-3">
+                    <label for="professor" class="form-label">Professor:</label>
+                    <select id="professor" name="professor" class="form-select">
+                        {% for professor in professores %}
+                        <option value="{{ professor.id }}">{{ professor.nome }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+        
+                <button type="submit" class="btn btn-primary">Criar Aula</button>
+        
+            </form>
         </div>
-        {% endfor %}
-        {% endif %}
-        <form method="post">
-            {% csrf_token %}
-            <div class="mb-3">
-                <label for="nome_aula" class="form-label">Nome da Aula:</label>
-                <input type="text" id="nome_aula" name="nome_aula" class="form-control" placeholder="Nome da Aula..." required>
-            </div>
-
-            <div class="mb-3">
-                <label for="turma" class="form-label">Turma:</label>
-                <select id="turma" name="turma" class="form-select">
-                    {% for turma in turmas %}
-                    <option value="{{ turma.id }}">{{ turma.nome }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="mb-3">
-                <label for="professor" class="form-label">Professor:</label>
-                <select id="professor" name="professor" class="form-select">
-                    {% for professor in professores %}
-                    <option value="{{ professor.id }}">{{ professor.nome }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <button type="submit" class="btn btn-primary">Criar Aula</button>
-           
-        </form>
-    </div>
+        
 
 {% endblock %}

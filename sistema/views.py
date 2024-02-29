@@ -8,10 +8,9 @@ from .models import Aula, Professor, Turma, DiaDaSemana, Hora, CargaHorariaProfe
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 import random 
-from django.db.models import Count
-from django.db.models import Q
-from django.http import HttpResponse
-from django.utils import timezone
+from django.db import IntegrityError
+
+
 
 @staff_member_required(login_url = 'login_view')
 def ultimas_aulas_view(request):
@@ -24,9 +23,8 @@ def ultimas_aulas_view(request):
     return render(request, 'ultimas_aulas.html', context)
 
 
-@staff_member_required(login_url = 'login_view')
+@staff_member_required(login_url='login_view')
 def create_systems(request):
-    last_error = None
     if request.method == 'POST':
         nome_aula = request.POST.get('nome_aula')
         turma_id = request.POST.get('turma')
@@ -35,13 +33,14 @@ def create_systems(request):
         turma = Turma.objects.get(id=turma_id)
         professor = Professor.objects.get(id=professor_id)
 
-        # PEgando os dias da semana
+        # Pegando os dias da semana
         dias_semana = DiaDaSemana.objects.all()
         horas_disponiveis = Hora.objects.all()
 
-        # Listando, para permitir combinações validas
+        # Listando, para permitir combinações válidas
         combinacoes_validas = []
 
+        last_validation_error = None  # Armazena o último erro de validação
 
         for dia in dias_semana:
             # Verificar se há carga horária definida para o professor e para a turma neste dia
@@ -56,33 +55,49 @@ def create_systems(request):
                         # Se a validação for bem-sucedida, adicionar a combinação à lista de combinações válidas
                         combinacoes_validas.append((dia, hora))
                     except ValidationError as e:
-                        last_error = e.message_dict[next(iter(e.message_dict))][0]
-                    
-                        continue
-
-            else:
-                last_error = None     
+                        # Armazenar apenas o último erro de validação
+                        last_validation_error = {
+                            'nome_aula': nome_aula,
+                            'dia_semana': dia,
+                            'hora': hora,
+                            'professor': professor,
+                            'turma': turma,
+                            'errors': e.message_dict
+                        }
 
         if combinacoes_validas:
             # Escolher aleatoriamente uma combinação válida
             dia_escolhido, hora_escolhida = random.choice(combinacoes_validas)
             # Criar a aula com a combinação escolhida
-            Aula.objects.create(nome=nome_aula, dia_semana=dia_escolhido, hora=hora_escolhida, professor=professor, turma=turma)
+            Aula.objects.create(nome=nome_aula, dia_semana=dia_escolhido, hora=hora_escolhida, professor=professor,
+                                turma=turma)
             messages.success(request, 'Aula criada com sucesso!')
+            # Se a aula for criada com sucesso, definir last_validation_error como None
+            last_validation_error = None
+
         else:
             # Se nenhuma combinação válida for encontrada, exibir mensagem de erro
             messages.error(request, 'Não há combinação de dia e hora disponível.')
-            
 
-        return redirect('create_systems')
+        # Renderizar o formulário com o último erro de validação, se houver
+        turmas = Turma.objects.all()
+        professores = Professor.objects.all()
+        context = {
+            'turmas': turmas,
+            'professores': professores,
+            'last_validation_error': last_validation_error,
+        }
+        return render(request, 'cad_sistemas.html', context)
 
     else:
         # Se o método não for POST, renderizar o formulário
         turmas = Turma.objects.all()
         professores = Professor.objects.all()
-        return render(request, 'cad_sistemas.html', {'turmas': turmas, 'professores': professores, 'last_error': last_error})
+        return render(request, 'cad_sistemas.html',
+                      {'turmas': turmas, 'professores': professores})
     
-@login_required(login_url='login_view')
+
+@staff_member_required(login_url = 'login_view')
 def create_varios_sistemas(request):
     if request.method == 'POST':
         nome_aula = request.POST.get('nome_aula')
