@@ -145,26 +145,6 @@ class Aula(models.Model):
             raise ValidationError(_('Este professor já tem outra aula marcada para este horário.'))
         
 
-        # Verificar se há conflito de horários para a turma
-        if Aula.objects.filter(
-            dia_semana=self.dia_semana,
-            hora=self.hora,
-            turma=self.turma
-        ).exclude(pk=self.pk).exists():
-            raise ValidationError(_('Esta turma já tem outra aula marcada para este horário.'))
-        
-
-        # Verificar se há conflito de horários para os alunos
-        alunos_na_turma = self.turma.alunos.all()
-        turma = self.turma
-        for aluno in alunos_na_turma:
-            if Aula.objects.filter(
-                dia_semana=self.dia_semana,
-                hora=self.hora,
-                turma__alunos=aluno
-            ).exclude(pk=self.pk).exists():
-                raise ValidationError(_('O aluno {} está em outra aula neste horário na turma {}.').format(aluno.nome, self.turma))
-
         # Verificar se a aula está dentro da carga horária do professor
         carga_horaria_professor = CargaHorariaProfessor.objects.filter(
             professor=self.professor,
@@ -189,3 +169,23 @@ class Aula(models.Model):
 
     class Meta:
         unique_together = ('dia_semana', 'hora', 'professor', 'turma')
+
+
+def validar_conflito_turma(self, dia, hora, turma):
+    if Aula.objects.filter(
+        dia_semana=dia,
+        hora=hora,
+        turma=turma
+    ).exclude(pk=self.pk).exists():
+        raise ValidationError(_('Esta turma já tem outra aula marcada para este horário.'))
+
+
+def validar_conflito_aluno(self, dia, hora, turma):
+    alunos_na_turma = turma.alunos.all()
+    for aluno in alunos_na_turma:
+        if Aula.objects.filter(
+            dia_semana=dia,
+            hora=hora,
+            turma__alunos=aluno
+        ).exclude(pk=self.pk).exists():
+            raise ValidationError(_('O aluno {} está em outra aula neste horário na turma {}.').format(aluno.nome, turma))

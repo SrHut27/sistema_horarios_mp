@@ -9,7 +9,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 import random 
 from django.db import IntegrityError
-
+from .utilis import validar_conflito_turma, validar_conflito_aluno
 
 
 @staff_member_required(login_url = 'login_view')
@@ -25,6 +25,8 @@ def ultimas_aulas_view(request):
 
 @staff_member_required(login_url='login_view')
 def create_systems(request):
+    dia_escolhido = None
+    hora_escolhida = None
     if request.method == 'POST':
         nome_aula = request.POST.get('nome_aula')
         turma_id = request.POST.get('turma')
@@ -52,8 +54,32 @@ def create_systems(request):
                         # Tentar criar uma nova instância de Aula temporária para validar
                         nova_aula = Aula(nome=nome_aula, dia_semana=dia, hora=hora, professor=professor, turma=turma)
                         nova_aula.full_clean()  # Aplica todas as validações do modelo
-                        # Se a validação for bem-sucedida, adicionar a combinação à lista de combinações válidas
-                        combinacoes_validas.append((dia, hora))
+                        if validar_conflito_turma(dia_escolhido, hora_escolhida, turma):
+                            messages.error(request, 'Já existe uma aula para esta turma no mesmo dia e hora.')
+                            aulas_conflitantes = Aula.objects.filter(dia_semana=dia_escolhido, hora=hora_escolhida, turma=turma)
+                            # Retorne para o template
+                            turmas = Turma.objects.all()
+                            professores = Professor.objects.all()
+                            context = {
+                                'turmas': turmas,
+                                'professores': professores,
+                                'last_validation_error': last_validation_error,
+                            }
+                            return render(request, 'cad_sistemas.html', context)
+                        elif validar_conflito_aluno(dia_escolhido, hora_escolhida, turma):
+                                messages.error(request, 'Um ou mais alunos desta turma estão em outra aula no mesmo dia e hora.')
+                                # Renderizar o formulário com mensagem de erro
+                                turmas = Turma.objects.all()
+                                professores = Professor.objects.all()
+                                context = {
+                                    'turmas': turmas,
+                                    'professores': professores,
+                                    'last_validation_error': last_validation_error,
+                                }
+                                return render(request, 'cad_sistemas.html', context)
+                        else:
+                            # Se a validação for bem-sucedida, adicionar a combinação à lista de combinações válidas
+                            combinacoes_validas.append((dia, hora))
                     except ValidationError as e:
                         # Armazenar apenas o último erro de validação
                         last_validation_error = {
@@ -68,15 +94,38 @@ def create_systems(request):
         if combinacoes_validas:
             # Escolher aleatoriamente uma combinação válida
             dia_escolhido, hora_escolhida = random.choice(combinacoes_validas)
+
+            if validar_conflito_turma(dia_escolhido, hora_escolhida, turma):
+                messages.error(request, 'Já existe uma aula para esta turma no mesmo dia e hora. Se deseja cadastrar uma subturma, por favor, vá para a aba "Cadastrar Aula Completo"')
+                # Renderizar o formulário com mensagem de erro
+                turmas = Turma.objects.all()
+                professores = Professor.objects.all()
+                context = {
+                    'turmas': turmas,
+                    'professores': professores,
+                    'last_validation_error': last_validation_error,
+                }
+                return render(request, 'cad_sistemas.html', context)
+            elif validar_conflito_aluno(dia_escolhido, hora_escolhida, turma):
+                    messages.error(request, 'Um ou mais alunos desta turma estão em outra aula no mesmo dia e hora.')
+                            # Renderizar o formulário com mensagem de erro
+                    turmas = Turma.objects.all()
+                    professores = Professor.objects.all()
+                    context = {
+                                'turmas': turmas,
+                                'professores': professores,
+                                'last_validation_error': last_validation_error,
+                            }
+            else:
             # Criar a aula com a combinação escolhida
-            nova_aula = Aula(nome=nome_aula, dia_semana=dia_escolhido, hora=hora_escolhida, professor=professor, turma=turma)
-            # Atribuir o usuário atualmente autenticado como criador da aula
-            nova_aula.criado_por = request.user
-            # Salvar a aula
-            nova_aula.save()
-            messages.success(request, 'Aula criada com sucesso!')
-            # Se a aula for criada com sucesso, definir last_validation_error como None
-            last_validation_error = None
+                nova_aula = Aula(nome=nome_aula, dia_semana=dia_escolhido, hora=hora_escolhida, professor=professor, turma=turma)
+                # Atribuir o usuário atualmente autenticado como criador da aula
+                nova_aula.criado_por = request.user
+                # Salvar a aula
+                nova_aula.save()
+                messages.success(request, 'Aula criada com sucesso!')
+                # Se a aula for criada com sucesso, definir last_validation_error como None
+                last_validation_error = None
 
         else:
             # Se nenhuma combinação válida for encontrada, exibir mensagem de erro
@@ -122,6 +171,17 @@ def create_varios_sistemas(request):
                 # Atribuir o usuário atualmente autenticado como criador da aula
                 nova_aula.criado_por = request.user
                 nova_aula.full_clean()  # Aplica todas as validações do modelo
+                
+                # Verificar conflitos de turma
+                if validar_conflito_turma(dia, hora, turma):
+                    messages.error(request, 'Já existe uma aula para esta turma no mesmo dia e hora.')
+                    break
+
+                # Verificar conflitos de aluno
+                if validar_conflito_aluno(dia, hora, turma):
+                    messages.error(request, 'Um ou mais alunos desta turma estão em outra aula no mesmo dia e hora.')
+                    break
+
                 # Se a validação for bem-sucedida, criar a aula
                 nova_aula.save()
                 messages.success(request, f'Aula para {dia} criada com sucesso!')
