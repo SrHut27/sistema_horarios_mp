@@ -41,14 +41,7 @@ class Turma(models.Model):
         DiaDaSemana, 
         through='CargaHorariaTurma',
         related_name='carga_horaria_turmas'
-    )
-    @property
-    def horarios_completos(self):
-        for dia in self.carga_horaria_semanal.all():
-            if not dia.aulas.exists():
-                return False
-        return True
-    
+    )  
 
     def __str__(self):
         return self.nome
@@ -171,6 +164,8 @@ class Aula(models.Model):
         unique_together = ('dia_semana', 'hora', 'professor', 'turma')
 
 
+
+# Validações externas. Coloquei aqui para não perder ; )
 def validar_conflito_turma(self, dia, hora, turma):
     if Aula.objects.filter(
         dia_semana=dia,

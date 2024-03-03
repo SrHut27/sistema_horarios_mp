@@ -1,0 +1,39 @@
+{% extends 'base_admin.html' %}
+
+{% block content %}
+<style>
+    .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 0 15px;
+    }
+
+    .mt-5 {
+        margin-top: 3rem !important;
+    }
+
+    .mt-3 {
+        margin-top: 1.5rem !important;
+    }
+
+    .mb-3 {
+        margin-bottom: 1.5rem !important;
+    }
+
+    .form-label {
+        margin-bottom: 0.5rem;
+    }
+</style>
+
+<div class="container mt-5">
+    <h1>Confirmação de Conflito</h1>
+    <p>Nesse dia e horário, {{ tipo_conflito }}. Gostaria de continuar?</p>
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="confirmacao_conflito" value="sim">
+        <button type="submit" class="btn btn-primary">Sim</button>
+        <a href="{% url 'create_systems_completo' %}" class="btn btn-secondary">Não</a>
+    </form>
+</div>
+
+{% endblock %}

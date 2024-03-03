@@ -79,3 +79,4 @@ class HoraAdmin(admin.ModelAdmin):
 admin.site.register(Professor)
 admin.site.register(Turma)
 admin.site.register(Aluno, AlunoAdmin)
+admin.site.register(DiaDaSemana)
