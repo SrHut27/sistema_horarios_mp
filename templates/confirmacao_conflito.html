@@ -27,7 +27,7 @@
 
 <div class="container mt-5">
     <h1>Confirmação de Conflito</h1>
-    <p>Nesse dia e horário, {{ tipo_conflito }}. Gostaria de continuar?</p>
+    <p>Nesse dia e horário, {{ tipo_conflito }} Gostaria de continuar?</p>
     <form method="post">
         {% csrf_token %}
         <input type="hidden" name="confirmacao_conflito" value="sim">
