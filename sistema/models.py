@@ -156,7 +156,8 @@ class Aula(models.Model):
             if not carga_horaria_turma.horas.filter(pk=self.hora.pk).exists():
                 raise ValidationError(_('Esta aula está fora da carga horária da turma.'))
 
-
+        if not carga_horaria_professor and not carga_horaria_turma:
+            raise ValidationError(_('Não é possível cadastrar uma aula se não houver carga horária registrada para o professor e para a turma.'))
     def __str__(self):
         return f'{self.nome} - {self.dia_semana} ({self.hora})'
 

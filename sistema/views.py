@@ -21,6 +21,8 @@ def ultimas_aulas_view(request):
 
     return render(request, 'ultimas_aulas.html', context)
 
+from django.forms import ValidationError
+
 @staff_member_required(login_url='login_view')
 def create_systems_completo(request):
     if request.method == 'POST':
@@ -43,10 +45,18 @@ def create_systems_completo(request):
             return redirect('confirmacao_conflito', nome_aula=nome_aula_id, turma_id=turma_id, professor_id=professor_id, dia_escolhido=dia_escolhido, hora_escolhida=hora_escolhida)
         else:
             nova_aula = Aula(nome=nome_aula_id, dia_semana=dia_da_semana_instance, hora=hora_escolhida_instance, professor=professor, turma=turma)
-            nova_aula.criado_por = request.user
-            nova_aula.save()
-            messages.success(request, 'Aula criada com sucesso!')
-            return redirect('create_systems_completo')
+            # Passar as informações para o método clean do modelo Aula
+            nova_aula.request = request
+            try:
+                nova_aula.clean()
+            except ValidationError as e:
+                messages.error(request, e)
+                return redirect('create_systems_completo')
+            else:
+                nova_aula.criado_por = request.user
+                nova_aula.save()
+                messages.success(request, 'Aula criada com sucesso!')
+                return redirect('create_systems_completo')
 
     else:
         # Renderizar a página de criação de aula
@@ -59,6 +69,7 @@ def create_systems_completo(request):
                        'professores': professores, 
                        'dias_semana': dias_semana, 
                        'horas_disponiveis': horas_disponiveis})
+
 
 
 def confirmacao_conflito(request, nome_aula, turma_id, professor_id, dia_escolhido, hora_escolhida):
@@ -79,7 +90,7 @@ def confirmacao_conflito(request, nome_aula, turma_id, professor_id, dia_escolhi
             # Se o usuário recusar, retornar uma mensagem indicando que a aula não foi cadastrada
             return HttpResponse("Aula não foi cadastrada.")
     else:
-        tipo_conflito = "Já existe uma aula atribuída para essa turma ou para um ou mais alunos dessa turma."
+        tipo_conflito = "Já existe uma aula atribuída para essa turma ou para um ou mais alunos que pertencem a essa turma."
         return render(request, 'confirmacao_conflito.html', {'tipo_conflito': tipo_conflito})
 
 
@@ -154,7 +165,7 @@ def create_systems(request):
 
         else:
             # Se nenhuma combinação válida for encontrada, exibir mensagem de erro
-            messages.error(request, 'Não há combinação de dia e hora disponível. Verifique a Carga Horária do Professor ou da turma escolhida, ou se o professor já tem uma aulano horário escolhido')
+            messages.error(request, 'Não há combinação de dia e hora disponível. Verifique a Carga Horária do Professor ou da turma escolhida, ou se o professor já tem uma aula no horário escolhido')
 
         # Renderizar o formulário com o último erro de validação, se houver
         turmas = Turma.objects.all()
