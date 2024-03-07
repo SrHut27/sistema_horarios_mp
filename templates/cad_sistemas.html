@@ -73,7 +73,7 @@
                     <ul style="list-style: none;">
                         {% for field, errors in last_validation_error.errors.items %}
                         {% for error in errors %}
-                        <li>{{ field }}: {{ error }}</li>
+                        <li>{{ field }}: {{ error }}
                         {% endfor %}
                         {% endfor %}
                     </ul>
@@ -92,7 +92,7 @@
             {% for message in messages %}
             <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% endif %} alert-dismissible"
                 role="alert">
-                <div>{{ message }}</div>
+                <div>{{ message }}</div></li><a class="alert-link" href="{% url 'admin:index' %}">Verificar</a>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
             {% endfor %}

@@ -10,6 +10,8 @@ from django.contrib.auth import authenticate
 import random 
 from .utilis import validar_conflito_turma, validar_conflito_aluno, tem_conflito_turma, tem_conflito_aluno
 from django.http import HttpResponse
+import datetime  
+from django.forms import ValidationError
 
 @staff_member_required(login_url = 'login_view')
 def ultimas_aulas_view(request):
@@ -20,8 +22,6 @@ def ultimas_aulas_view(request):
     }
 
     return render(request, 'ultimas_aulas.html', context)
-
-from django.forms import ValidationError
 
 @staff_member_required(login_url='login_view')
 def create_systems_completo(request):
@@ -37,29 +37,27 @@ def create_systems_completo(request):
         dia_da_semana_instance = DiaDaSemana.objects.get(id=dia_escolhido)
         hora_escolhida_instance = Hora.objects.get(id=hora_escolhida)
 
-        # Verificar se há conflitos de horário para a turma ou de alunos
-        conflito_turma = tem_conflito_turma(dia_da_semana_instance, hora_escolhida_instance, turma)
-        conflito_aluno = tem_conflito_aluno(dia_da_semana_instance, hora_escolhida_instance, turma)
-
-        if conflito_turma or conflito_aluno:
-            return redirect('confirmacao_conflito', nome_aula=nome_aula_id, turma_id=turma_id, professor_id=professor_id, dia_escolhido=dia_escolhido, hora_escolhida=hora_escolhida)
-        else:
-            nova_aula = Aula(nome=nome_aula_id, dia_semana=dia_da_semana_instance, hora=hora_escolhida_instance, professor=professor, turma=turma)
-            # Passar as informações para o método clean do modelo Aula
-            nova_aula.request = request
-            try:
-                nova_aula.clean()
-            except ValidationError as e:
-                messages.error(request, e)
-                return redirect('create_systems_completo')
+        nova_aula = Aula(nome=nome_aula_id, dia_semana=dia_da_semana_instance, hora=hora_escolhida_instance, professor=professor, turma=turma)
+        # Pass the request information to the Aula model instance
+        nova_aula.request = request
+        try:
+            nova_aula.full_clean()  # Run all model validation methods
+            # Check for conflicts after full model validation
+            conflito_turma = tem_conflito_turma(dia_da_semana_instance, hora_escolhida_instance, turma)
+            conflito_aluno = tem_conflito_aluno(dia_da_semana_instance, hora_escolhida_instance, turma)
+            if conflito_turma or conflito_aluno:
+                return redirect('confirmacao_conflito', nome_aula=nome_aula_id, turma_id=turma_id, professor_id=professor_id, dia_escolhido=dia_escolhido, hora_escolhida=hora_escolhida)
             else:
                 nova_aula.criado_por = request.user
                 nova_aula.save()
                 messages.success(request, 'Aula criada com sucesso!')
                 return redirect('create_systems_completo')
+        except ValidationError as e:
+            messages.error(request, e)
+            return redirect('create_systems_completo')
 
     else:
-        # Renderizar a página de criação de aula
+        # Render the class creation page
         turmas = Turma.objects.all()
         professores = Professor.objects.all()
         dias_semana = DiaDaSemana.objects.all()
@@ -70,8 +68,7 @@ def create_systems_completo(request):
                        'dias_semana': dias_semana, 
                        'horas_disponiveis': horas_disponiveis})
 
-
-
+@staff_member_required(login_url='login_view')
 def confirmacao_conflito(request, nome_aula, turma_id, professor_id, dia_escolhido, hora_escolhida):
     if request.method == 'POST':
         if request.POST.get('confirmacao_conflito') == 'sim':
@@ -165,7 +162,7 @@ def create_systems(request):
 
         else:
             # Se nenhuma combinação válida for encontrada, exibir mensagem de erro
-            messages.error(request, 'Não há combinação de dia e hora disponível. Verifique a Carga Horária do Professor ou da turma escolhida, ou se o professor já tem uma aula no horário escolhido')
+            messages.error(request, 'Não há combinação de dia e hora disponível. Verifique a Carga Horária do Professor ou da turma escolhida, ou se o professor já tem uma aula no horário escolhido.')
 
         # Renderizar o formulário com o último erro de validação, se houver
         turmas = Turma.objects.all()
@@ -282,6 +279,37 @@ def horarios_view(request):
     }
 
     return render(request, 'horarios.html', context)
+@login_required(login_url = 'login_view')
+def vizualizar_turmas_view(request):
+    dias_da_semana = DiaDaSemana.objects.all()
+    horas = Hora.objects.all().order_by('horario')
+    termo_pesquisa = request.GET.get('termo_pesquisa', None)
+    turmas = Turma.objects.all()  # Recuperando todas as turmas
+
+    # Verificando se foi selecionado um dia da semana
+    dia_selecionado = request.GET.get('dia_semana')
+    aulas_filtradas = Aula.objects.all()
+    if dia_selecionado:
+        aulas_filtradas = aulas_filtradas.filter(dia_semana__nome=dia_selecionado)
+
+    # Cria um dicionário para armazenar as aulas de cada turma por hora
+    aulas_por_hora_turma = {}
+    for turma in turmas:
+        aulas_por_hora = {}
+        for hora in horas:
+            aula = aulas_filtradas.filter(turma=turma, hora=hora).first()
+            aulas_por_hora[hora] = aula
+        aulas_por_hora_turma[turma] = aulas_por_hora
+
+    context = {
+        'dias_da_semana': dias_da_semana,
+        'horas': horas,
+        'aulas_por_hora_turma': aulas_por_hora_turma,
+        'termo_pesquisa': termo_pesquisa,
+        'dia_selecionado': dia_selecionado,
+    }
+
+    return render(request, 'vizualizar_aulas.html', context)
 
 @login_required(login_url='login_view')
 def sistema_view(request):

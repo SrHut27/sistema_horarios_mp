@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Conteúdo -->
+<main class="container flex-grow-1">
+    <div class="col-10 mx-auto my-4">
+        <h5 class="text-muted">Selecione o dia da semana para consultar o horário das turmas</h5>
+        <form method="GET" action="{% url 'vizualizar_turmas_view' %}">
+            <div class="input-group">
+                <select name="dia_semana" class="form-control">
+                    <option value="">Selecione o dia da semana</option>
+                    {% for dia in dias_da_semana %}
+                        <option value="{{ dia.nome }}" {% if dia.nome == dia_selecionado %}selected{% endif %}>{{ dia.nome }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-primary">Pesquisar</button>
+            </div>
+        </form>
+    </div>
+
+    {% if dia_selecionado %}
+    <div class="col-10 mx-auto">
+        <h3>Horário das Turmas para {{ dia_selecionado }}</h3>
+
+        {% for turma, aulas_por_hora in aulas_por_hora_turma.items %}
+        <div class="mt-4">
+            <h5>{{ turma }}</h5>
+            <table class="table table-bordered w-100">
+                <thead>
+                    <tr>
+                        <th scope="col" style="width: calc(100% / 9);">Horário</th>
+                        <th scope="col">Aula</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for hora, aula in aulas_por_hora.items %}
+                    <tr>
+                        <td>{{ hora }}</td>
+                        {% if aula %}
+                            <td class="text-center 
+                                {% if aula.nome in 'Santa Missa|Intervalo|Saída|Almoço' %}bg-dark text-light 
+                                {% elif aula.nome in 'Física|Inglês|MTB|Geografia|Literatura' %}bg-primary text-light 
+                                {% elif aula.nome in 'Matemática|História|Educação Física|Filosofia' %}bg-danger text-light 
+                                {% elif aula.nome in 'Português|Biologia|Artes|Sociologia|Química' %}bg-success text-light 
+                                {% elif aula.nome in 'Judô|Balé|Artes|Música|Futebol|Cantinho' %}bg-warning text-dark 
+                                {% elif aula.nome in 'Jazz|Filme|Programação' %}bg-secondary text-light 
+                                {% endif %}" 
+                                data-toggle="tooltip" 
+                                title="Aula: {{ aula.nome }} | Professor: {{ aula.professor }} | Turma: {{ aula.turma }}">
+                                {{ aula.nome }}
+                            </td>
+                        {% else %}
+                            <td class="bg-secondary text-light text-center">- - -</td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</main>
+{% endblock %}
