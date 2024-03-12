@@ -22,20 +22,20 @@
     <div class="col-10 mx-auto">
         <h3>Horário das Turmas para {{ dia_selecionado }}</h3>
 
-        {% for turma, aulas_por_hora in aulas_por_hora_turma.items %}
-        <div class="mt-4">
-            <h5>{{ turma }}</h5>
-            <table class="table table-bordered w-100">
-                <thead>
-                    <tr>
-                        <th scope="col" style="width: calc(100% / 9);">Horário</th>
-                        <th scope="col">Aula</th>
-                    </tr>
-                </thead>
-                <tbody>
+        <table class="table table-bordered w-100">
+            <thead>
+                <tr>
+                    <th scope="col" style="width: 10%;">Turma</th>
+                    {% for hora in horas %}
+                        <th scope="col">{{ hora }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for turma, aulas_por_hora in aulas_por_hora_turma.items %}
+                <tr>
+                    <td>{{ turma }}</td>
                     {% for hora, aula in aulas_por_hora.items %}
-                    <tr>
-                        <td>{{ hora }}</td>
                         {% if aula %}
                             <td class="text-center 
                                 {% if aula.nome in 'Santa Missa|Intervalo|Saída|Almoço' %}bg-dark text-light 
@@ -52,12 +52,11 @@
                         {% else %}
                             <td class="bg-secondary text-light text-center">- - -</td>
                         {% endif %}
-                    </tr>
                     {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
     {% endif %}
 </main>

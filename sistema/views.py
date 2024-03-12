@@ -12,6 +12,7 @@ from .utilis import validar_conflito_turma, validar_conflito_aluno, tem_conflito
 from django.http import HttpResponse
 import datetime  
 from django.forms import ValidationError
+from django.shortcuts import get_object_or_404
 
 @staff_member_required(login_url = 'login_view')
 def ultimas_aulas_view(request):
@@ -22,6 +23,13 @@ def ultimas_aulas_view(request):
     }
 
     return render(request, 'ultimas_aulas.html', context)
+
+def excluir_aula(request, aula_id):
+    aula = get_object_or_404(Aula, id=aula_id)
+    if request.method == 'POST':
+        aula.delete()
+        messages.success(request, 'Aula excluída com sucesso!')
+        return redirect('ultimas_aulas_view')
 
 @staff_member_required(login_url='login_view')
 def create_systems_completo(request):
@@ -180,7 +188,8 @@ def create_systems(request):
         professores = Professor.objects.all()
         return render(request, 'cad_sistemas.html',
                       {'turmas': turmas, 'professores': professores})
-   
+
+
 
 @staff_member_required(login_url='login_view')
 def create_varios_sistemas(request):
