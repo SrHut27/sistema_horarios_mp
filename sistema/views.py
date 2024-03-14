@@ -288,7 +288,8 @@ def horarios_view(request):
     }
 
     return render(request, 'horarios.html', context)
-@login_required(login_url = 'login_view')
+
+@login_required(login_url='login_view')
 def vizualizar_turmas_view(request):
     dias_da_semana = DiaDaSemana.objects.all()
     horas = Hora.objects.all().order_by('horario')
@@ -301,16 +302,17 @@ def vizualizar_turmas_view(request):
     if dia_selecionado:
         aulas_filtradas = aulas_filtradas.filter(dia_semana__nome=dia_selecionado)
 
-    # Cria um dicionário para armazenar as aulas de cada turma por hora
+    # Cria um dicionário para armazenar as aulas de cada hora por turma
     aulas_por_hora_turma = {}
-    for turma in turmas:
+    for hora in horas:
         aulas_por_hora = {}
-        for hora in horas:
+        for turma in turmas:
             aula = aulas_filtradas.filter(turma=turma, hora=hora).first()
-            aulas_por_hora[hora] = aula
-        aulas_por_hora_turma[turma] = aulas_por_hora
+            aulas_por_hora[turma] = aula
+        aulas_por_hora_turma[hora] = aulas_por_hora
 
     context = {
+        'turmas': turmas,
         'dias_da_semana': dias_da_semana,
         'horas': horas,
         'aulas_por_hora_turma': aulas_por_hora_turma,
@@ -319,6 +321,7 @@ def vizualizar_turmas_view(request):
     }
 
     return render(request, 'vizualizar_aulas.html', context)
+
 
 @login_required(login_url='login_view')
 def sistema_view(request):

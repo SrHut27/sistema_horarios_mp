@@ -16,3 +16,10 @@ def turma_has_horarios_completos(turma):
             return False
 
     return True
+
+@register.filter
+def dict_lookup(d, key):
+    """
+    Custom template filter to perform dictionary lookup.
+    """
+    return d.get(key, None)

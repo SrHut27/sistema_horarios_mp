@@ -19,22 +19,22 @@
     </div>
 
     {% if dia_selecionado %}
-    <div class="col-10 mx-auto">
+    <div class="col-30 mx-auto">
         <h3>Horário das Turmas para {{ dia_selecionado }}</h3>
-
-        <table class="table table-bordered w-100">
+        <div class="table-responsive">
+        <table class="table table-bordered w-600" style="table-layout: fixed; width: 300%;">
             <thead>
                 <tr>
-                    <th scope="col" style="width: 10%;">Turma</th>
-                    {% for hora in horas %}
-                        <th scope="col">{{ hora }}</th>
+                    <th scope="col" style="width: 5%;">Turmas</th>
+                    {% for turma in turmas %}
+                        <th scope="col">{{ turma.nome }}</th>
                     {% endfor %}
                 </tr>
             </thead>
             <tbody>
                 {% for turma, aulas_por_hora in aulas_por_hora_turma.items %}
                 <tr>
-                    <td>{{ turma }}</td>
+                    <td >{{ turma }}</td>  <!-- Aqui é onde devemos exibir o nome da turma -->
                     {% for hora, aula in aulas_por_hora.items %}
                         {% if aula %}
                             <td class="text-center 
@@ -44,7 +44,7 @@
                                 {% elif aula.nome in 'Português|Biologia|Artes|Sociologia|Química' %}bg-success text-light 
                                 {% elif aula.nome in 'Judô|Balé|Artes|Música|Futebol|Cantinho' %}bg-warning text-dark 
                                 {% elif aula.nome in 'Jazz|Filme|Programação' %}bg-secondary text-light 
-                                {% endif %}" 
+                                {% endif %}"  
                                 data-toggle="tooltip" 
                                 title="Aula: {{ aula.nome }} | Professor: {{ aula.professor }} | Turma: {{ aula.turma }}">
                                 {{ aula.nome }}
@@ -56,7 +56,9 @@
                 </tr>
                 {% endfor %}
             </tbody>
+            
         </table>
+    </div>
     </div>
     {% endif %}
 </main>
